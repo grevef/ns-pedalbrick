@@ -1,29 +1,40 @@
 local QBCore = exports["qb-core"]:GetCoreObject()
-local playerped = PlayerPedId()
 
+local function Notify(msg, nType)
+    lib.notify({
+        description = Locale(msg),
+        type = nType or 'inform'
+    })
+end
+
+local function loadAnimDict(dict)
+    RequestAnimDict(dict)
+    while not HasAnimDictLoaded(dict) do
+        Wait(0)
+    end
+end
+
+-- ox_target / qb-target
 if target == "ox_target" then 
     exports.ox_target:addModel(mursteiner, {
         {
+            label = Locale('pickup'),
             name = "murstein1",
-            debugPoly = false,
             useZ = true,
             event = "plukkoppmur",
             icon = "fa fa-signing",
-            label = pickup,
             distance = 2.5
         },
     })
+
     exports.ox_target:addGlobalVehicle({
         {
-            label = plasserpedal,
+            label = Locale('plasserpedal'),
             name = 'murstein',
             icon = 'fa fa-signing',
-            items = itemname,
-            bones = "door_dside_f",
             distance = 3.5,
             onSelect = function(data)
-                local entity = data.entity
-                if not DoesEntityExist(entity) then return end
+                if not DoesEntityExist(data.entity) then return end
                 TriggerEvent("banngass")
             end,
         }
@@ -34,25 +45,26 @@ else
             {
                 event = 'plukkoppmur',
                 icon = 'fa fa-signing',
-                label = pickup,
+                label = Locale('pickup'),
             },
         },
         distance = 2.5
     })
+
     if useitem == false then 
         exports['qb-target']:AddGlobalVehicle({
             options = { 
                 { 
-                type = "client", 
-                icon = 'fa fa-signing', 
-                label = plasserpedal,
-                targeticon = 'fa fa-signing', 
-                item = itemname,
-                canInteract = function(entity, distance, data)
-                    local entity = data.entity
-                    if not DoesEntityExist(entity) then return end
-                    TriggerEvent("banngass")
-                end,
+                    type = "client", 
+                    icon = 'fa fa-signing', 
+                    label = Locale('plasserpedal'),
+                    item = itemname,
+                    canInteract = function(entity, distance, data)
+                        return DoesEntityExist(entity)
+                    end,
+                    action = function(entity)
+                        TriggerEvent("banngass")
+                    end
                 }
             },
             distance = 3.5, 
@@ -60,74 +72,94 @@ else
     end
 end
 
-local function loadAnimDict(dict)
-    RequestAnimDict(dict)
-    while not HasAnimDictLoaded(dict) do
-        Wait(0)
-    end
-end
-
+-- pickup event
 RegisterNetEvent("plukkoppmur", function()
-    local playerped = PlayerPedId()    
-    RequestAnimDict("pickup_object")
+    local playerPed = cache.ped
+
     loadAnimDict("pickup_object")
-    TaskPlayAnim(playerped,"pickup_object","pickup_low",1.0,-1.0,-1,2,1,true,true,true)
+    TaskPlayAnim(playerPed, "pickup_object", "pickup_low", 1.0, -1.0, -1, 2, 1, true, true, true)
+
     Wait(2000)
-    ClearPedTasks(playerped)
+    ClearPedTasks(playerPed)
+
     TriggerServerEvent("girmur")
 end)
 
-RegisterNetEvent("banngass",function()
-    ---- This is made to work with and without target
-    local playerped = PlayerPedId()
+-- main logic
+RegisterNetEvent("banngass", function()
+    local playerPed = cache.ped
+
+    local hasItem = false
+
     if Config.inv == "ox_inventory" then
-        hasitemox = exports.ox_inventory:Search('count', itemname)
-        if hasitemox then hasItem = true end
+        local count = exports.ox_inventory:Search('count', itemname)
+        hasItem = (count and count > 0)
     else
-        hasItem = QBCore.Functions.HasItem(itemname, 1)      
+        hasItem = QBCore.Functions.HasItem(itemname, 1)
     end
-    local coords = GetEntityCoords(playerped)
+
+    local coords = GetEntityCoords(playerPed)
     local vehicle = QBCore.Functions.GetClosestVehicle(coords)
-    local vehcoords = GetEntityCoords(vehicle)
-    local betcoord = #(coords - vehcoords)
-    local door = GetVehicleDoorLockStatus(vehicle)
-    if hasItem == false then QBCore.Functions.Notify(missingbrick) return end
-    if door == 2 then QBCore.Functions.Notify(locked) return end 
-    if betcoord < 3.5 then 
-        SetVehicleDoorOpen(vehicle,0,false,true)
-        RequestAnimDict("pickup_object")
+
+    if not vehicle or vehicle == 0 then return end
+
+    local vehCoords = GetEntityCoords(vehicle)
+    local distance = #(coords - vehCoords)
+
+    local doorLock = GetVehicleDoorLockStatus(vehicle)
+
+    if not hasItem then 
+        Notify('missingbrick', 'error')
+        return 
+    end
+
+    if doorLock == 2 then 
+        Notify('locked', 'error')
+        return 
+    end
+
+    if distance < 3.5 then 
+        SetVehicleDoorOpen(vehicle, 0, false, true)
+
         loadAnimDict("pickup_object")
-        TaskPlayAnim(playerped,"pickup_object","pickup_low",1.0,-1.0,-1,2,1,true,true,true)
+        TaskPlayAnim(playerPed, "pickup_object", "pickup_low", 1.0, -1.0, -1, 2, 1, true, true, true)
+
         Wait(2000)
+
         TriggerServerEvent("fjemur")
-        ClearPedTasks(playerped)
-        SetVehicleDoorShut(vehicle,0,false)
+
+        ClearPedTasks(playerPed)
+
+        SetVehicleDoorShut(vehicle, 0, false)
+
         SetVehicleEngineOn(vehicle, true, true, false)
+
         Wait(1000)
-        QBCore.Functions.Notify(placedonpedal)
-        TaskVehicleTempAction(GetPlayerPed(-1),vehicle,32,time)
+
+        Notify('placedonpedal', 'success')
+
+        TaskVehicleTempAction(playerPed, vehicle, 32, 15000)
+
         if breakcar then 
-            CreateThread( function()
+            CreateThread(function()
                 while true do
                     Wait(10)
-                    local broken = HasEntityCollidedWithAnything(vehicle) 
-                    if broken then 
+
+                    if HasEntityCollidedWithAnything(vehicle) then 
                         SetVehicleEngineOn(vehicle, false, false, false)
-                        SetVehicleEngineHealth(vehicle, 0)  
-                        SetVehicleUndriveable(vehicle, true)     
+                        SetVehicleEngineHealth(vehicle, 0)
+                        SetVehicleUndriveable(vehicle, true)
                         break
                     elseif loopabreaka then
                         break
                     end
                 end
-
             end)
+
+            Wait(15000)
+            loopabreaka = true
         end
-        if breakcar then Wait(15000) loopabreaka = true end
     else
-        QBCore.Functions.Notify(close)
+        Notify('close', 'error')
     end
 end)
-
-
-

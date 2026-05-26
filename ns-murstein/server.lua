@@ -1,30 +1,47 @@
 local QBCore = exports["qb-core"]:GetCoreObject()
 
+-- Helper: item adding
+local function AddItem(src, item, amount)
+    if Config.inv == "ox_inventory" then
+        exports.ox_inventory:AddItem(src, item, amount)
+    else
+        local Player = QBCore.Functions.GetPlayer(src)
+        if Player then
+            Player.Functions.AddItem(item, amount)
+        end
+    end
+end
+
+-- Helper: item removal
+local function RemoveItem(src, item, amount)
+    if Config.inv == "ox_inventory" then
+        exports.ox_inventory:RemoveItem(src, item, amount)
+    else
+        local Player = QBCore.Functions.GetPlayer(src)
+        if Player then
+            Player.Functions.RemoveItem(item, amount)
+        end
+    end
+end
+
 RegisterNetEvent("girmur", function()
     local src = source
-    local Player = QBCore.Functions.GetPlayer(src)
-    if inv == "ox_inventory" then
-        exports.ox_inventory:AddItem(src, itemname, 1)
-    else
-        Player.Functions.AddItem(itemname, 1)
-    end
+    if not src then return end
+
+    AddItem(src, itemname, 1)
 end)
+
 
 RegisterNetEvent("fjemur", function()
     local src = source
-    local Player = QBCore.Functions.GetPlayer(src)
-    if inv == "ox_inventory" then
-        exports.ox_inventory:RemoveItem(src, itemname, 1)
-    else
-        Player.Functions.RemoveItem(itemname, 1)
-    end
+    if not src then return end
+
+    RemoveItem(src, itemname, 1)
 end)
 
-if framework == "qb" then
+-- QBCore usable item
+if Config.framework == "qb" then
     QBCore.Functions.CreateUseableItem(itemname, function(source)
-        local src = source
-        local Player = QBCore.Functions.GetPlayer(src)
         TriggerClientEvent("banngass", source)
     end)
-
 end
