@@ -37,6 +37,8 @@ or just pure fun, this script is guaranteed to be a hit.
     },
 }
 ```
+**ox_inventory item picture**
+![alt text](brick.png)
 
 **Dependencies**
 
