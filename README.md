@@ -25,19 +25,21 @@ hilarious, and adds a whole new layer of creativity and chaos to your server. Wh
 or just pure fun, this script is guaranteed to be a hit.
 
 **ox_inventory item**
-```
-["murstein"] = {
-    label = "Murstein",
+```lua
+["brick"] = {
+    label = "Brick",
     weight = 3000,
     stack = true,
     close = true,
-    description = "Murstein",
+    description = "A brick used to activate vehicle chaos.",
     client = {
         event = "banngass"
     },
-},
+}
 ```
+**ox_inventory item picture**
 
+![Inventory Image](brick.png)
 
 **Dependencies**
 
