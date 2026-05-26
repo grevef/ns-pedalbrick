@@ -3,7 +3,7 @@ Config.Locale = 'en'
 
 ----- Framework / Inventory / Target
 framework = "qbx" ---- write "qb" for QBCore or qbx for Qbox
-itemname = "murstein" ---- Item Name
+itemname = "brick" ---- Item Name
 target = "ox_target" ---- Support for ox_target an qb-target
 inv = "ox_inventory" ---- if you use QB write qb-inventory 
 

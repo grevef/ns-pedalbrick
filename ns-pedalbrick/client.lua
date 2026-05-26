@@ -33,6 +33,10 @@ if target == "ox_target" then
             name = 'murstein',
             icon = 'fa fa-signing',
             distance = 3.5,
+            canInteract = function(entity, distance, coords, name)
+                local count = exports.ox_inventory:Search('count', itemname)
+                return (count or 0) > 0
+            end,
             onSelect = function(data)
                 if not DoesEntityExist(data.entity) then return end
                 TriggerEvent("banngass")

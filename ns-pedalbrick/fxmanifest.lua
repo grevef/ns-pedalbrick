@@ -13,11 +13,16 @@ files {
     'server.lua'
 }
 
-shared_script {
+shared_scripts {
     '@ox_lib/init.lua',
-    '@qbx_core/modules/lib.lua', -- Comment if you don't use QBox.
     'locales/*.lua',
-    'config.lua'
+    '@qbx_core/modules/lib.lua',
+
+    'config.lua',
+
+    'locales/locales.lua',
+    'locales/en.lua',
+    'locales/no.lua'
 }
 
 client_script {

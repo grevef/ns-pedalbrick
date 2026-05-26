@@ -26,7 +26,7 @@ or just pure fun, this script is guaranteed to be a hit.
 
 **ox_inventory item**
 ```lua
-["murstein"] = {
+["brick"] = {
     label = "Brick",
     weight = 3000,
     stack = true,
