@@ -15,7 +15,6 @@ files {
 
 shared_scripts {
     '@ox_lib/init.lua',
-    'locales/*.lua',
     '@qbx_core/modules/lib.lua',
 
     'config.lua',
